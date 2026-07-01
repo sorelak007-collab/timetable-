@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DGC Reminder</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 20px auto;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    h1 { color: #22c55e; margin: 0 0 5px 0; }
+    #day { font-size: 1.1rem; color: #94a3b8; margin-bottom: 20px; font-weight: bold; }
+    
+    .tab-group {
+      display: flex;
+      background: #0f172a;
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      padding: 10px;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tab-btn.active {
+      background: #22c55e;
+      color: #0f172a;
+    }
+
+    .class-item {
+      background: #0f172a;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      text-align: left;
+      border-left: 4px solid #22c55e;
+      position: relative;
+    }
+    .time { font-size: 1.2rem; font-weight: bold; color: white; }
+    .subject { font-size: 1.1rem; color: #cbd5e1; margin: 4px 0; }
+    .room { font-size: 0.9rem; color: #22c55e; }
+    
+    .no-class { font-size: 4rem; margin: 20px 0; }
+    .status-text { font-size: 1.4rem; color: #94a3b8; margin-bottom: 8px; }
+    
+    .editor-section {
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 20px;
+      text-align: left;
+      border: 1px dashed #475569;
+    }
+    .editor-section h3 { margin-top: 0; color: #38bdf8; font-size: 1.1rem; }
+    .editor-section label { font-size: 0.85rem; color: #94a3b8; display: block; margin: 8px 0 4px; }
+    
+    select, input, textarea {
+      width: 100%;
+      padding: 10px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: white;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+    textarea { font-family: monospace; height: 60px; resize: none; }
+    .btn-group { display: flex; gap: 8px; margin-top: 12px; }
+    
+    button {
+      border: none;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-toggle { background: #475569; color: white; width: 100%; padding: 12px; margin-top: 15px; font-size: 0.95rem;}
+    .btn-add { background: #38bdf8; color: #0f172a; flex: 2; padding: 12px; }
+    .btn-clear { background: #ef4444; color: white; flex: 1; padding: 12px; }
+    .btn-share { background: #e2e8f0; color: #0f172a; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; margin-top: 6px; }
+    
+    .delete-item-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+    }
+    .footer { color: #64748b; font-size: 0.8rem; margin-top: 40px; }
+    .hidden { display: none !important; }
+    .sound-status { font-size: 0.8rem; color: #38bdf8; margin-top: -10px; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>DGC Reminder</h1>
+    <p id="day">Loading App...</p>
+    <div class="sound-status">🔊 Sound Tracker Active</div>
+    
+    <div class="tab-group">
+      <button id="tab-today" class="tab-btn" onclick="switchView('today')">TODAY</button>
+      <button id="tab-tomorrow" class="tab-btn active" onclick="switchView('tomorrow')">TOMORROW</button>
+    </div>
+    
+    <div id="schedule-container"></div>
+    
+    <button class="btn-toggle" onclick="toggleEditor()">⚙️ Open Control Panel</button>
+
+    <div id="editor-panel" class="editor-section hidden">
+      <h3>Manage Semester Schedule</h3>
+      
+      <label>Target Weekday</label>
+      <select id="edit-day">
+        <option value="1">Monday</option>
+        <option value="2">Tuesday</option>
+        <option value="3">Wednesday</option>
+        <option value="4">Thursday</option>
+        <option value="5">Friday</option>
+        <option value="6">Saturday</option>
+        <option value="0">Sunday</option>
+      </select>
+
+      <label>Class Start Time (Must be exactly HH:MM AM/PM format)</label>
+      <input type="text" id="edit-time" placeholder="e.g., 09:00 AM or 02:30 PM">
+
+      <label>Subject / Module Name</label>
+      <input type="text" id="edit-subject" placeholder="e.g., CS Minor">
+
+      <label>Room Allocation</label>
+      <input type="text" id="edit-room" placeholder="e.g., Room 302">
+
+      <div class="btn-group">
+        <button class="btn-add" onclick="addClassItem()">Add Lecture</button>
+        <button class="btn-clear" onclick="clearDaySchedule()">Clear Day</button>
+      </div>
+
+      <h3 style="margin-top:20px; color:#a855f7;">Share Timetable Data</h3>
+      <label>Config Backup String</label>
+      <textarea id="share-string" readonly></textarea>
+      <button class="btn-share" onclick="importTimetablePrompt()">📥 Import Friend's Timetable</button>
+      <button class="btn-share" style="background:#ef4444; color:white; float:right;" onclick="resetToFactoryDefaults()">🔄 Reset App</button>
+    </div>
+  </div>
+
+  <p class="footer">Built by CS Minor 🐅 | Sound Dashboard v5</p>
+
+  <script>
+    var timetable = {
+      1: [{ time: "09:00 AM", subject: "CS Minor", room: "Room 302" }, { time: "11:00 AM", subject: "English", room: "Room 101" }],
+      2: [{ time: "10:00 AM", subject: "Math", room: "Room 205" }],
+      3: [], 
+      4: [{ time: "09:00 AM", subject: "CS Minor", room: "Room 302" }],
+      5: [{ time: "02:00 PM", subject: "Lab", room: "CS Lab" }],
+      6: [],
+      0: []
+    };
+
+    try {
+      var saved = localStorage.getItem('dgc_sound_clean');
+      if (saved) timetable = JSON.parse(saved);
+    } catch(e) {}
+
+    var currentTargetView = 'tomorrow';
+    var playedAlarms = {};
+
+    function playReminderSound() {
+      try {
+        var context = new (window.AudioContext || window.webkitAudioContext)();
+        var notes = [523.25, 659.25, 783.99, 1046.50]; 
+        notes.forEach(function(freq, index) {
+          setTimeout(function() {
+            var osc = context.createOscillator();
+            var gain = context.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, context.currentTime);
+            gain.gain.setValueAtTime(0.3, context.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.4);
+            osc.connect(gain);
+            gain.connect(context.destination);
+            osc.start();
+            osc.stop(context.currentTime + 0.4);
+          }, index * 150);
+        });
+      } catch(e) {}
+    }
+
+    function checkLiveTimeReminders() {
+      var now = new Date();
+      var hours = now.getHours();
+      var minutes = now.getMinutes();
+      var ampm = hours >= 12 ? 'PM' : 'AM';
+      
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      
+      var strHours = hours < 10 ? '0' + hours : hours;
+      var strMinutes = minutes < 10 ? '0' + minutes : minutes;
+      var currentFormattedTime = strHours + ':' + strMinutes + ' ' + ampm;
+      
+      var dayNum = now.getDay();
+      var todayClasses = timetable[dayNum] || [];
+      
+      for (var i = 0; i < todayClasses.length; i++) {
+        if (todayClasses[i].time === currentFormattedTime) {
+          var alarmKey = dayNum + '-' + currentFormattedTime + '-' + todayClasses[i].subject;
+          if (!playedAlarms[alarmKey]) {
+            playReminderSound();
+            playedAlarms[alarmKey] = true; 
+            alert("⏰ Class Starting Now: " + todayClasses[i].subject + " in " + todayClasses[i].room);
+          }
+        }
+      }
+    }
+
+    function switchView(targetMode) {
+      currentTargetView = targetMode;
+      document.getElementById('tab-today').className = 'tab-btn' + (targetMode === 'today' ? ' active' : '');
+      document.getElementById('tab-tomorrow').className = 'tab-btn' + (targetMode === 'tomorrow' ? ' active' : '');
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      var targetDate = new Date();
+      if (currentTargetView === 'tomorrow') {
+        targetDate.setDate(targetDate.getDate() + 1);
+      }
+      
+      var dayNum = targetDate.getDay(); 
+      var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+      document.getElementById("day").innerText = currentTargetView.toUpperCase() + ": " + days[dayNum];
+      
+      var container = document.getElementById("schedule-container");
+      var classes = timetable[dayNum] || [];
+
+      if (classes.length === 0) {
+        container.innerHTML = '<div class="no-class">...</div><div class="status-text">No classes scheduled</div><div class="room" style="color:#94a3b8;">Enjoy your break, bor!</div>';
+      } else {
+        var html = '';
+        for(var i=0; i<classes.length; i++) {
+          html += '<div class="class-item">' +
+                  '<div class="time">' + classes[i].time + '</div>' +
+                  '<div class="subject">' + classes[i].subject + '</div>' +
+                  '<div class="room">' + classes[i].room + '</div>' +
+                  '<button class="delete-item-btn" onclick="deleteClassItem(' + dayNum + ',' + i + ')">❌</button>' +
+                  '</div>';
+        }
+        container.innerHTML = html;
+      }
+      try {
+        document.getElementById("share-string").value = btoa(JSON.stringify(timetable));
+      } catch(e) {}
+    }
+
+    function toggleEditor() {
+      var panel = document.getElementById("editor-panel");
+      panel.className = panel.className.indexOf("hidden") !== -1 ? "editor-section" : "editor-section hidden";
+    }
+
+  
