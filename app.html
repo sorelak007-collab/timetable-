@@ -1,1 +1,50 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DGC Reminder</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0f172a; color: white; margin: 0; padding: 20px; text-align: center; }
+    .card { background: #1e293b; border-radius: 16px; padding: 24px; margin: 20px auto; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    h1 { color: #22c55e; margin: 0 0 5px 0; }
+    #day { font-size: 1.1rem; color: #94a3b8; margin-bottom: 20px; font-weight: bold; }
+    .tab-group { display: flex; background: #0f172a; padding: 4px; border-radius: 10px; margin-bottom: 20px; }
+    .tab-btn { flex: 1; background: transparent; color: #94a3b8; border: none; padding: 10px; font-size: 0.9rem; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .tab-btn.active { background: #22c55e; color: #0f172a; }
+    .class-item { background: #0f172a; padding: 14px; border-radius: 12px; margin-bottom: 12px; text-align: left; border-left: 4px solid #22c55e; }
+    .time { font-size: 1.2rem; font-weight: bold; color: white; }
+    .subject { font-size: 1.1rem; color: #cbd5e1; margin: 4px 0; }
+    .room { font-size: 0.9rem; color: #22c55e; }
+    .no-class { font-size: 4rem; margin: 20px 0; }
+    .status-text { font-size: 1.4rem; color: #94a3b8; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>DGC Reminder</h1>
+    <p id="day">THURSDAY: Thursday</p>
+    <div class="tab-group">
+      <button id="tab-today" class="tab-btn" onclick="showDay('today')">TODAY</button>
+      <button id="tab-tomorrow" class="tab-btn active" onclick="showDay('tomorrow')">TOMORROW</button>
+    </div>
+    <div id="box">
+      <div class="class-item"><div class="time">09:00 AM</div><div class="subject">CS Minor</div><div class="room">Room 302</div></div>
+    </div>
+  </div>
+  <script>
+    function showDay(mode) {
+      document.getElementById('tab-today').className = 'tab-btn' + (mode === 'today' ? ' active' : '');
+      document.getElementById('tab-tomorrow').className = 'tab-btn' + (mode === 'tomorrow' ? ' active' : '');
+      if(mode === 'today') {
+        document.getElementById('day').innerText = 'TODAY: Wednesday';
+        document.getElementById('box').innerHTML = '<div class="no-class">😴</div><div class="status-text">No classes scheduled</div><div class="room" style="color:#94a3b8;">Enjoy your break, bor!</div>';
+      } else {
+        document.getElementById('day').innerText = 'TOMORROW: Thursday';
+        document.getElementById('box').innerHTML = '<div class="class-item"><div class="time">09:00 AM</div><div class="subject">CS Minor</div><div class="room">Room 302</div></div>';
+      }
+    }
+  </script>
+</body>
+</html>
